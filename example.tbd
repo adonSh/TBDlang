@@ -1,0 +1,74 @@
+;; To import this file
+;'example.tbd import
+
+;; Comments are designated by semicolons.
+;; Primitive types are ints, bools, symbols, and lists.
+3 print
+true print
+'a print
+'[4 'b false] print
+
+;; Symbols and lists must be quoted with "'" to avoid immediate evaluation.
+;; A symbol can be bound to another value with "def"
+'a 3 def
+
+;; Now "a" can be evaluated without "'" and can be used in other expressions.
+2 a + print
+
+;; An unquoted list is evaluated as a Procedure. A Procedure performs all
+;; computation in an isolated stack and only returns its final value. It
+;; does not have isolated scope, so any definitions will persist. You can use
+;; the "DEBUG" builtin to observe the state of the stack and the environment.
+[1 2 3 4 5 'b 2 def 897 23987 + 0]
+DEBUG
+
+;; Functions are Procedures that also have a specific, isolated scope.
+;; The value on top of the stack when a function exits is its return value.
+;; The following defines "c" globally then creates an anonymous function
+;; (lambda) which takes two arguments and reassigns "c" within the
+;; function scope to the sum of its two arguments. When the function returns,
+;; its binding of c does not persist. Functions literals are not
+;; self-evaluating, so the "apply" builtin is used to execute an
+;; unevaluated expression.
+'c 1 def
+3 4
+{[b a] 'c [a b +] def c print } apply ;Prints 7
+c print ;Prints 1
+
+;; Here are some more example functions. Functions are first-class values
+;; and can be bothed passed as arguments to and returned from other functions.
+
+;; Computes x! recursively
+'factorial {[x]
+  [1 x =]
+    x
+    '[x 1 - factorial x *] ;This must be quoted to enable recursion
+  ifelse
+} def
+
+;; Returns a list containing the result of applying the function f
+;; to every element of the given list.
+;;;; NOT WORKING CURRENTLY
+;'map {[xs f]
+;    [] xs =
+;        []
+;        '[[xs head f] ['f xs tail map] Q]
+;    ifelse
+;} def
+
+;; Delayed application of +
+'addCurried {[y]
+  {[x]
+    x y +
+  }
+} def
+
+;; 4! = 24
+4 factorial print
+
+;; Create a function that adds 3 to it's argument
+'add3 3 addCurried def
+
+;; Apply the previous function to it's own preceding values.
+;; This adds 3 to 4! and prints the result (in a roundabout way).
+apply print
